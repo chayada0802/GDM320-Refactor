@@ -23,25 +23,42 @@ public class SoundManager : MonoBehaviour
 	void Start()
 	{
 		instances++;
-		if (instances > 1)
-			Debug.LogWarning("Warning: There are more than one SoundManager at the level");
-		else
-			_instance = this;
+		WarningFromSoundManager();
 
 		float storedVolumeValue = PreferencesManager.Instance.GetMusicVolume();
 		for (int i = 0; i < audioButtons.Length; i++)
 		{
-			if (storedVolumeValue > 0)
-			{
-				audioButtons[i].GetComponent<Renderer>().material.mainTexture = GameMenuManager.Instance.menuTextures[2];
-				GameMenuManager.Instance.audioEnabled = true;
-			}
-			else
-			{
-				audioButtons[i].GetComponent<Renderer>().material.mainTexture = GameMenuManager.Instance.menuTextures[3];
-				GameMenuManager.Instance.audioEnabled = false;
-			}
+			IsVolumeValue(storedVolumeValue,i);
 		}
+		IsVolumeValueOff(storedVolumeValue);
+	}
+
+	void WarningFromSoundManager()
+    {
+		if (instances > 1)
+			Debug.LogWarning("Warning: There are more than one SoundManager at the level");
+		else
+			_instance = this;
+	}
+
+	void IsVolumeValue(float storedVolumeValue,int i)
+    {
+		if (storedVolumeValue > 0)
+		{
+			audioButtons[i].GetComponent<Renderer>().material.mainTexture = GameMenuManager.Instance.menuTextures[2];
+			GameMenuManager.Instance.audioEnabled = true;
+		}
+		else
+		{
+			audioButtons[i].GetComponent<Renderer>().material.mainTexture = GameMenuManager.Instance.menuTextures[3];
+			GameMenuManager.Instance.audioEnabled = false;
+		}
+
+
+	}
+
+	void IsVolumeValueOff(float storedVolumeValue)
+    {
 		if (storedVolumeValue <= 0)
 		{
 			this.StopMusic();
@@ -101,16 +118,7 @@ public class SoundManager : MonoBehaviour
 		float storedVolumeValue = gameObject.GetComponent<AudioSource>().volume;
 		for (int i = 0; i < audioButtons.Length; i++)
 		{
-			if (storedVolumeValue > 0)
-			{
-				audioButtons[i].GetComponent<Renderer>().material.mainTexture = GameMenuManager.Instance.menuTextures[2];
-				GameMenuManager.Instance.audioEnabled = true;
-			}
-			else
-			{
-				audioButtons[i].GetComponent<Renderer>().material.mainTexture = GameMenuManager.Instance.menuTextures[3];
-				GameMenuManager.Instance.audioEnabled = false;
-			}
+			IsVolumeValue(storedVolumeValue, i);
 		}
 	}
 }

@@ -65,14 +65,7 @@ public class LevelSpawnManager : MonoBehaviour
 	{
 		instances++;
 
-		if (instances > 1)
-		{
-			Debug.LogWarning("Warning: There are more than one Level Generator at the level");
-		}
-		else
-		{
-			_instance = this;
-		}
+		WarningLevelGenerator();
 
 		defaultScrollSpeed = scrollSpeed;
 		scrollCloudSpeed = scrollSpeed * 12.5f;
@@ -83,8 +76,31 @@ public class LevelSpawnManager : MonoBehaviour
 		SpawnCityBackgroundLayer(1);
 	}
 
+	void WarningLevelGenerator()
+    {
+		if (instances > 1)
+		{
+			Debug.LogWarning("Warning: There are more than one Level Generator at the level");
+		}
+		else
+		{
+			_instance = this;
+		}
+	}
+
 	void Update()
 	{
+		IscanSpawn();
+
+		if (!paused)
+		{
+			distance += scrollSpeed * Time.deltaTime * 25;
+			MissionManager.Instance.DistanceEvent((int)distance);
+		}
+	}
+
+	void IscanSpawn()
+    {
 		if (canSpawn && !paused)
 		{
 			if (canSpawnPowerUp)
@@ -98,12 +114,6 @@ public class LevelSpawnManager : MonoBehaviour
 			}
 
 			ScrollLevel();
-		}
-
-		if (!paused)
-		{
-			distance += scrollSpeed * Time.deltaTime * 25;
-			MissionManager.Instance.DistanceEvent((int)distance);
 		}
 	}
 
@@ -120,22 +130,7 @@ public class LevelSpawnManager : MonoBehaviour
 
 		for (int i = 0; i < activeElements.Count; i++)
 		{
-			switch (activeElements[i].tag)
-			{
-				case "CloudLayer":
-					activeElements[i].transform.position -= Vector3.right * scrollCloudSpeed * Time.deltaTime;
-					break;
-
-				case "CityBackgroundLayer":
-					activeElements[i].transform.position -= Vector3.right * scrollBackgroundSpeed * Time.deltaTime;
-					break;
-
-				case "CityForegroundLayer":
-				case "Obstacles":
-				case "Particle":
-					activeElements[i].transform.position -= Vector3.right * scrollForegroundSpeed * Time.deltaTime;
-					break;
-			}
+			SwitchElement(i);
 		}
 
 		if (scrollGalata)
@@ -152,6 +147,26 @@ public class LevelSpawnManager : MonoBehaviour
 		ground.material.mainTextureOffset += scrolling * Time.deltaTime;
 	}
 
+	void SwitchElement(int i)
+    {
+		switch (activeElements[i].tag)
+		{
+			case "CloudLayer":
+				activeElements[i].transform.position -= Vector3.right * scrollCloudSpeed * Time.deltaTime;
+				break;
+
+			case "CityBackgroundLayer":
+				activeElements[i].transform.position -= Vector3.right * scrollBackgroundSpeed * Time.deltaTime;
+				break;
+
+			case "CityForegroundLayer":
+			case "Obstacles":
+			case "Particle":
+				activeElements[i].transform.position -= Vector3.right * scrollForegroundSpeed * Time.deltaTime;
+				break;
+		}
+	}
+
 	void ClearMap()
 	{
 		StopAllCoroutines();
@@ -161,35 +176,40 @@ public class LevelSpawnManager : MonoBehaviour
 
 		while (activeElements.Count > 0)
 		{
-			switch (activeElements[0].tag)
-			{
-				case "CloudLayer":
-					cloudLayer.Add(activeElements[0]);
-					activeElements[0].transform.localPosition = new Vector3(100, activeElements[0].transform.localPosition.y, activeElements[0].transform.localPosition.z);
-					activeElements[0].SetActive(false);
-					activeElements.Remove(activeElements[0]);
-					break;
+			ClearElements();
+		}
+	}
 
-				case "CityBackgroundLayer":
-					cityBackgroundLayer.Add(activeElements[0]);
-					activeElements[0].transform.localPosition = new Vector3(115, activeElements[0].transform.localPosition.y, activeElements[0].transform.localPosition.z);
-					activeElements[0].SetActive(false);
-					activeElements.Remove(activeElements[0]);
-					break;
+	void ClearElements()
+    {
+		switch (activeElements[0].tag)
+		{
+			case "CloudLayer":
+				cloudLayer.Add(activeElements[0]);
+				activeElements[0].transform.localPosition = new Vector3(100, activeElements[0].transform.localPosition.y, activeElements[0].transform.localPosition.z);
+				activeElements[0].SetActive(false);
+				activeElements.Remove(activeElements[0]);
+				break;
 
-				case "CityForegroundLayer":
-					cityForegroundLayer.Add(activeElements[0]);
-					activeElements[0].transform.localPosition = new Vector3(125, activeElements[0].transform.localPosition.y, activeElements[0].transform.localPosition.z);
-					activeElements[0].SetActive(false);
-					activeElements.Remove(activeElements[0]);
-					break;
+			case "CityBackgroundLayer":
+				cityBackgroundLayer.Add(activeElements[0]);
+				activeElements[0].transform.localPosition = new Vector3(115, activeElements[0].transform.localPosition.y, activeElements[0].transform.localPosition.z);
+				activeElements[0].SetActive(false);
+				activeElements.Remove(activeElements[0]);
+				break;
 
-				case "Obstacles":
-					obstacles.Add(activeElements[0]);
-					activeElements[0].transform.localPosition = new Vector3(175, activeElements[0].transform.localPosition.y, activeElements[0].transform.localPosition.z);
-					activeElements.Remove(activeElements[0]);
-					break;
-			}
+			case "CityForegroundLayer":
+				cityForegroundLayer.Add(activeElements[0]);
+				activeElements[0].transform.localPosition = new Vector3(125, activeElements[0].transform.localPosition.y, activeElements[0].transform.localPosition.z);
+				activeElements[0].SetActive(false);
+				activeElements.Remove(activeElements[0]);
+				break;
+
+			case "Obstacles":
+				obstacles.Add(activeElements[0]);
+				activeElements[0].transform.localPosition = new Vector3(175, activeElements[0].transform.localPosition.y, activeElements[0].transform.localPosition.z);
+				activeElements.Remove(activeElements[0]);
+				break;
 		}
 	}
 
@@ -360,6 +380,16 @@ public class LevelSpawnManager : MonoBehaviour
 
 	public void PoolGameObject(GameObject pooledObject)
 	{
+		PoolingObjectCase( pooledObject);
+
+		if (pooledObject.tag != "Obstacles")
+		{
+			pooledObject.SetActive(false);
+		}
+	}
+
+	void PoolingObjectCase(GameObject pooledObject)
+    {
 		switch (pooledObject.tag)
 		{
 			case "CloudLayer":
@@ -385,11 +415,7 @@ public class LevelSpawnManager : MonoBehaviour
 				obstacles.Add(pooledObject);
 				pooledObject.transform.localPosition = new Vector3(175, pooledObject.transform.localPosition.y, pooledObject.transform.localPosition.z);
 				break;
-		}
 
-		if (pooledObject.tag != "Obstacles")
-		{
-			pooledObject.SetActive(false);
 		}
 	}
 

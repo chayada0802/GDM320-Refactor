@@ -10,11 +10,16 @@ public class ObstacleManager : MonoBehaviour
 	{
 		foreach (Transform child in transform)
 		{
-			if (child.name != "SpawnTriggerer" && child.name != "ResetTriggerer")
-			{
-				elements.Add(child.gameObject);
-				child.gameObject.SetActive(false);
-			}
+			ElementsAdd(child);
+		}
+	}
+
+	void ElementsAdd(Transform child)
+    {
+		if (child.name != "SpawnTriggerer" && child.name != "ResetTriggerer")
+		{
+			elements.Add(child.gameObject);
+			child.gameObject.SetActive(false);
 		}
 	}
 
@@ -24,11 +29,16 @@ public class ObstacleManager : MonoBehaviour
 		{
 			Transform go = child.transform.Find("HideParticleEffect");
 
-			if (go != null)
-				go.GetComponent<ParticleSystem>().Stop();
+			GetParticleSystem(go);
 
 			child.SetActive(false);
 		}
+	}
+
+	void GetParticleSystem(Transform go)
+    {
+		if (go != null)
+			go.GetComponent<ParticleSystem>().Stop();
 	}
 
 	public void ActivateChild()
